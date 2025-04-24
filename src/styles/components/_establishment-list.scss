@@ -1,0 +1,226 @@
+.establishment-list {
+  background-color: white;
+  border-radius: 8px;
+  @include box-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+  overflow: hidden;
+
+  .list-header {
+    @include flex(row, space-between, center);
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+
+    .search-filter {
+      @include flex(row, flex-start, center, 15px);
+
+      .filter-button {
+        @include flex(row, center, center, 5px);
+        background: none;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 8px 12px;
+        cursor: pointer;
+        color: #555;
+        @include transition(background-color 0.2s);
+
+        &:hover {
+          background-color: $background-color;
+        }
+      }
+    }
+
+    .pagination-info {
+      color: #888;
+      font-size: 0.9rem;
+    }
+  }
+
+  .table-container {
+    overflow-x: auto;
+
+    .establishments-table {
+      width: 100%;
+      border-collapse: collapse;
+
+      th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+
+      th {
+        background-color: #f9f9f9;
+        font-weight: 600;
+        color: #555;
+        font-size: 0.9rem;
+
+        &.sortable {
+          cursor: pointer;
+          position: relative;
+
+          &.sorted {
+            color: $primary-color;
+          }
+
+          .sort-icon {
+            display: inline-flex;
+            margin-left: 5px;
+            vertical-align: middle;
+          }
+        }
+      }
+
+      tbody {
+        tr {
+          cursor: pointer;
+          @include transition(background-color 0.2s);
+
+          &:hover {
+            background-color: $background-color;
+          }
+        }
+      }
+
+      .logo-column {
+        width: 60px;
+
+        .establishment-logo {
+          width: 40px;
+          height: 40px;
+          border-radius: 4px;
+          overflow: hidden;
+          @include flex(row, center, center);
+          background-color: $background-color;
+
+          img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+          }
+        }
+      }
+
+      .category-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+
+        &.category-1 {
+          background-color: lighten($error-color, 38%);
+          color: $error-color;
+        }
+
+        &.category-2 {
+          background-color: lighten($warning-color, 45%);
+          color: $warning-color;
+        }
+
+        &.category-3 {
+          background-color: lighten($success-color, 45%);
+          color: $success-color;
+        }
+
+        &.category-4 {
+          background-color: lighten($info-color, 45%);
+          color: $info-color;
+        }
+
+        &.category-5 {
+          background-color: lighten(#8e24aa, 45%);
+          color: #8e24aa;
+        }
+      }
+
+      .avis-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+
+        &.avis-favorable {
+          background-color: lighten($success-color, 45%);
+          color: $success-color;
+        }
+
+        &.avis-défavorable {
+          background-color: lighten($error-color, 38%);
+          color: $error-color;
+        }
+      }
+
+      .actions-column {
+        width: 60px;
+        text-align: center;
+
+        .actions-dropdown {
+          position: relative;
+
+          .action-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #555;
+            padding: 5px;
+            border-radius: 4px;
+
+            &:hover {
+              background-color: #f0f0f0;
+            }
+          }
+
+          .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: white;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            @include box-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+            z-index: 10;
+            min-width: 150px;
+
+            button {
+              @include flex(row, flex-start, center, 8px);
+              width: 100%;
+              text-align: left;
+              padding: 8px 12px;
+              background: none;
+              border: none;
+              cursor: pointer;
+              color: $text-color;
+              @include transition(background-color 0.2s);
+
+              &:hover {
+                background-color: $background-color;
+              }
+            }
+          }
+        }
+      }
+
+      .empty-table {
+        text-align: center;
+        padding: 30px !important;
+        color: #888;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .establishment-list {
+    .list-header {
+      .search-filter {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+
+        .search-container {
+          width: 100%;
+        }
+      }
+    }
+  }
+}

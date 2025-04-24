@@ -1,0 +1,116 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100vh;
+  background-color: $sidebar-bg;
+  color: $sidebar-text;
+  @include transition(width 0.3s ease);
+  overflow-y: auto;
+  z-index: 1000;
+
+  &.collapsed {
+    width: 70px;
+  }
+
+  .sidebar-header {
+    padding: 15px;
+    border-bottom: 1px solid lighten($sidebar-bg, 5%);
+
+    .logo {
+      @include flex(row, flex-start, center, 10px);
+
+      .logo-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background-color: $secondary-color;
+        color: white;
+        @include flex(row, center, center);
+        font-weight: bold;
+      }
+
+      .logo-text {
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+    }
+  }
+
+  .sidebar-content {
+    padding: 15px 0;
+
+    .menu {
+      list-style: none;
+
+      .menu-item {
+        margin-bottom: 2px;
+
+        .menu-link {
+          @include flex(row, flex-start, center, 10px);
+          padding: 10px 15px;
+          color: #bbb;
+          text-decoration: none;
+          @include transition(background-color 0.2s);
+          cursor: pointer;
+
+          &:hover,
+          &.active {
+            background-color: $sidebar-hover;
+            color: $sidebar-text;
+          }
+
+          span {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+
+        .submenu {
+          list-style: none;
+          margin-left: 25px;
+          margin-top: 5px;
+          margin-bottom: 5px;
+
+          .submenu-item {
+            margin-bottom: 2px;
+
+            .submenu-link {
+              @include flex(row, flex-start, center, 8px);
+              padding: 8px 15px;
+              color: #bbb;
+              text-decoration: none;
+              @include transition(background-color 0.2s);
+              border-radius: 4px;
+              font-size: 0.9rem;
+
+              &:hover,
+              &.active {
+                background-color: $sidebar-hover;
+                color: $sidebar-text;
+              }
+
+              .submenu-icon {
+                flex-shrink: 0;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+
+    &.collapsed {
+      width: 250px;
+      transform: translateX(0);
+    }
+  }
+}

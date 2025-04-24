@@ -1,0 +1,152 @@
+// Form styles
+.form-container {
+  @include flex(column, flex-start, stretch, 15px);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+
+  &.two-columns {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.form-field {
+  @include flex(column, flex-start, stretch, 5px);
+
+  label {
+    font-weight: 500;
+    color: #555;
+    font-size: 0.9rem;
+
+    .required {
+      color: $error-color;
+      margin-left: 2px;
+    }
+  }
+
+  .field-hint {
+    font-size: 0.8rem;
+    color: #777;
+    margin-top: 2px;
+  }
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  @include transition(border-color 0.2s);
+
+  &:focus {
+    border-color: $primary-color;
+    outline: none;
+  }
+}
+
+.input-error {
+  border-color: $error-color !important;
+  background-color: lighten($error-color, 38%);
+}
+
+.error-message {
+  color: $error-color;
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-actions {
+  @include flex(row, flex-end, center);
+  margin-top: 10px;
+
+  .submit-button {
+    background-color: $primary-color;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-weight: 500;
+    cursor: pointer;
+    @include transition(background-color 0.2s);
+
+    &:hover {
+      background-color: darken($primary-color, 10%);
+    }
+  }
+}
+
+.file-input-container {
+  width: 100%;
+
+  .file-input-display {
+    @include flex(row, flex-start, center, 10px);
+
+    input {
+      flex: 1;
+      background-color: #f9f9f9;
+      cursor: default;
+    }
+
+    .file-select-button {
+      background-color: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 0 15px;
+      cursor: pointer;
+      color: #555;
+      @include transition(background-color 0.2s);
+
+      &:hover {
+        background-color: darken(#f0f0f0, 5%);
+      }
+    }
+  }
+}
+
+.checkbox-group {
+  @include flex(row, flex-start, center);
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+
+  .checkbox-item {
+    @include flex(row, flex-start, center, 5px);
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    label {
+      cursor: pointer;
+      font-size: 0.9rem;
+      margin: 0;
+      font-weight: normal;
+    }
+  }
+}
+
+.mt-2 {
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .form-row.two-columns {
+    grid-template-columns: 1fr;
+  }
+}
