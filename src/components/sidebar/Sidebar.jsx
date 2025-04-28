@@ -34,7 +34,7 @@ const Sidebar = ({ collapsed, onSwitchView, activeView , onCollapseChange}) => {
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
   }, [collapsed])
-
+ console.log("sidebarCollapsed", sidebarCollapsed)
   return (
     <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
