@@ -6,16 +6,9 @@ import "./FormStyles.css"
 const ActionForm = ({ initialData = null, onSubmit, contacts = [] }) => {
   const defaultFormData = {
     statut: "À faire",
-    description: "",
-    echeance: new Date().toISOString().split("T")[0],
-    responsable: "",
-    responsableAutre: "",
-    priorite: "Moyenne",
-    type: "",
-    categorie: [],
-    documents: [],
-    suivi: "",
-    dateCreation: new Date().toISOString().split("T")[0],
+    tache: "",
+    responsable: [],
+    deadline: new Date().toISOString().split("T")[0],
   }
 
   const [formData, setFormData] = useState(initialData || defaultFormData)
@@ -27,7 +20,6 @@ const ActionForm = ({ initialData = null, onSubmit, contacts = [] }) => {
       [field]: value,
     })
 
-    // Effacer l'erreur lorsque l'utilisateur modifie le champ
     if (errors[field]) {
       setErrors({
         ...errors,
@@ -36,43 +28,31 @@ const ActionForm = ({ initialData = null, onSubmit, contacts = [] }) => {
     }
   }
 
-  const handleCategorieChange = (categorie) => {
-    const currentCategories = [...formData.categorie]
-    if (currentCategories.includes(categorie)) {
+  const handleResponsableChange = (responsable) => {
+    const currentResponsables = [...formData.responsable]
+    if (currentResponsables.includes(responsable)) {
       handleChange(
-        "categorie",
-        currentCategories.filter((c) => c !== categorie),
+        "responsable",
+        currentResponsables.filter((r) => r !== responsable),
       )
     } else {
-      handleChange("categorie", [...currentCategories, categorie])
-    }
-  }
-
-  const handleDocumentChange = (document) => {
-    const currentDocuments = [...formData.documents]
-    if (currentDocuments.includes(document)) {
-      handleChange(
-        "documents",
-        currentDocuments.filter((d) => d !== document),
-      )
-    } else {
-      handleChange("documents", [...currentDocuments, document])
+      handleChange("responsable", [...currentResponsables, responsable])
     }
   }
 
   const validateForm = () => {
     const newErrors = {}
 
-    if (!formData.description.trim()) {
-      newErrors.description = "La description est requise"
+    if (!formData.tache.trim()) {
+      newErrors.tache = "La tâche est requise"
     }
 
-    if (!formData.echeance) {
-      newErrors.echeance = "La date d'échéance est requise"
+    if (!formData.deadline) {
+      newErrors.deadline = "La deadline est requise"
     }
 
-    if (formData.responsable === "Autre" && !formData.responsableAutre.trim()) {
-      newErrors.responsableAutre = "Le nom du responsable est requis"
+    if (formData.responsable.length === 0) {
+      newErrors.responsable = "Au moins un responsable doit être sélectionné"
     }
 
     setErrors(newErrors)
@@ -94,204 +74,66 @@ const ActionForm = ({ initialData = null, onSubmit, contacts = [] }) => {
           <label htmlFor="statut">Statut</label>
           <select id="statut" value={formData.statut} onChange={(e) => handleChange("statut", e.target.value)} required>
             <option value="À faire">À faire</option>
-            <option value="En cours">En cours</option>
-            <option value="Réalisé">Réalisé</option>
-            <option value="Reporté">Reporté</option>
-            <option value="Annulé">Annulé</option>
+            <option value="Fait">Fait</option>
           </select>
         </div>
       </div>
 
       <div className="form-row">
         <div className="form-field">
-          <label htmlFor="description">
-            Description <span className="required">*</span>
+          <label htmlFor="tache">
+            Tâche <span className="required">*</span>
           </label>
           <textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) => handleChange("description", e.target.value)}
+            id="tache"
+            value={formData.tache}
+            onChange={(e) => handleChange("tache", e.target.value)}
             required
             rows={3}
-            className={errors.description ? "input-error" : ""}
+            className={errors.tache ? "input-error" : ""}
           />
-          {errors.description && <div className="error-message">{errors.description}</div>}
+          {errors.tache && <div className="error-message">{errors.tache}</div>}
         </div>
       </div>
 
       <div className="form-row">
         <div className="form-field">
-          <label htmlFor="type">Type d'action</label>
-          <select id="type" value={formData.type} onChange={(e) => handleChange("type", e.target.value)}>
-            <option value="">Sélectionner</option>
-            <option value="Maintenance">Maintenance</option>
-            <option value="Sécurité">Sécurité</option>
-            <option value="Conformité">Conformité</option>
-            <option value="Amélioration">Amélioration</option>
-            <option value="Administratif">Administratif</option>
-            <option value="Autre">Autre</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-field">
-          <label>Catégories (sélection multiple)</label>
-          <div className="checkbox-group">
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="categorie-commission"
-                checked={formData.categorie.includes("Commission de Sécurité")}
-                onChange={() => handleCategorieChange("Commission de Sécurité")}
-              />
-              <label htmlFor="categorie-commission">Commission de Sécurité</label>
-            </div>
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="categorie-verification"
-                checked={formData.categorie.includes("Vérification Périodique")}
-                onChange={() => handleCategorieChange("Vérification Périodique")}
-              />
-              <label htmlFor="categorie-verification">Vérification Périodique</label>
-            </div>
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="categorie-observation"
-                checked={formData.categorie.includes("Observation PREVERIS")}
-                onChange={() => handleCategorieChange("Observation PREVERIS")}
-              />
-              <label htmlFor="categorie-observation">Observation PREVERIS</label>
-            </div>
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="categorie-prescription"
-                checked={formData.categorie.includes("Prescription")}
-                onChange={() => handleCategorieChange("Prescription")}
-              />
-              <label htmlFor="categorie-prescription">Prescription</label>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="form-row two-columns">
-        <div className="form-field">
-          <label htmlFor="echeance">
-            Échéance <span className="required">*</span>
-          </label>
-          <input
-            id="echeance"
-            type="date"
-            value={formData.echeance}
-            onChange={(e) => handleChange("echeance", e.target.value)}
-            required
-            className={errors.echeance ? "input-error" : ""}
-          />
-          {errors.echeance && <div className="error-message">{errors.echeance}</div>}
-        </div>
-        <div className="form-field">
-          <label htmlFor="priorite">Priorité</label>
-          <select
-            id="priorite"
-            value={formData.priorite}
-            onChange={(e) => handleChange("priorite", e.target.value)}
-            required
-          >
-            <option value="Basse">Basse</option>
-            <option value="Moyenne">Moyenne</option>
-            <option value="Haute">Haute</option>
-            <option value="Critique">Critique</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-field">
-          <label htmlFor="responsable">Responsable</label>
+          <label htmlFor="responsable">Responsable(s) <span className="required">*</span></label>
           <select
             id="responsable"
+            multiple
             value={formData.responsable}
-            onChange={(e) => handleChange("responsable", e.target.value)}
+            onChange={(e) => {
+              const selectedOptions = Array.from(e.target.selectedOptions).map((option) => option.value)
+              handleChange("responsable", selectedOptions)
+            }}
+            required
           >
-            <option value="">Sélectionner un responsable</option>
             {contacts.map((contact) => (
               <option key={contact.id} value={contact.nom}>
                 {contact.nom} {contact.prenom ? `- ${contact.prenom}` : ""}{" "}
                 {contact.fonction ? `(${contact.fonction})` : ""}
               </option>
             ))}
-            <option value="Autre">Autre</option>
           </select>
-          {formData.responsable === "Autre" && (
-            <input
-              type="text"
-              placeholder="Nom du responsable"
-              className={`mt-2 ${errors.responsableAutre ? "input-error" : ""}`}
-              value={formData.responsableAutre || ""}
-              onChange={(e) => handleChange("responsableAutre", e.target.value)}
-            />
-          )}
-          {errors.responsableAutre && <div className="error-message">{errors.responsableAutre}</div>}
+          {errors.responsable && <div className="error-message">{errors.responsable}</div>}
         </div>
       </div>
 
       <div className="form-row">
         <div className="form-field">
-          <label>Documents associés (sélection multiple)</label>
-          <div className="checkbox-group">
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="doc-rapport"
-                checked={formData.documents.includes("Rapport de vérification")}
-                onChange={() => handleDocumentChange("Rapport de vérification")}
-              />
-              <label htmlFor="doc-rapport">Rapport de vérification</label>
-            </div>
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="doc-devis"
-                checked={formData.documents.includes("Devis")}
-                onChange={() => handleDocumentChange("Devis")}
-              />
-              <label htmlFor="doc-devis">Devis</label>
-            </div>
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="doc-plan"
-                checked={formData.documents.includes("Plan d'action")}
-                onChange={() => handleDocumentChange("Plan d'action")}
-              />
-              <label htmlFor="doc-plan">Plan d'action</label>
-            </div>
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="doc-photo"
-                checked={formData.documents.includes("Photos")}
-                onChange={() => handleDocumentChange("Photos")}
-              />
-              <label htmlFor="doc-photo">Photos</label>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-field">
-          <label htmlFor="suivi">Suivi / Commentaires</label>
-          <textarea
-            id="suivi"
-            value={formData.suivi}
-            onChange={(e) => handleChange("suivi", e.target.value)}
-            rows={2}
+          <label htmlFor="deadline">
+            Deadline <span className="required">*</span>
+          </label>
+          <input
+            id="deadline"
+            type="date"
+            value={formData.deadline}
+            onChange={(e) => handleChange("deadline", e.target.value)}
+            required
+            className={errors.deadline ? "input-error" : ""}
           />
+          {errors.deadline && <div className="error-message">{errors.deadline}</div>}
         </div>
       </div>
 

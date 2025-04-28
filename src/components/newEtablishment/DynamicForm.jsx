@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback, useMemo } from "react"
+import { useState, useRef, useCallback, useMemo, useEffect } from "react"
 import { Plus, Bold, Italic, Underline, ImageIcon, Calendar, Trash2, Edit } from "lucide-react"
 import "./DynamicForm.css"
 import ContactForm from "../ContactForm"
@@ -60,11 +60,41 @@ const DynamicForm = ({ onSubmit, initialData = null }) => {
   const fileInputRef = useRef(null)
 
   const handleChange = useCallback((field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
+    setFormData((prev) => {
+      let newFormData = { ...prev, [field]: value };
+  
+      if (field === "groupements") {
+        const data = groupementsData[value] || {};
+  
+        newFormData = {
+          ...newFormData,
+          derniereCommissionGroupement: data.derniereCommissionGroupement || "",
+          prochaineCommissionGroupement: data.prochaineCommissionGroupement || "",
+          periodiciteCommissionsAn: data.periodiciteCommissionsAn || "",
+        };
+      }
+  
+      return newFormData;
+    });
   }, [])
+
+  const groupementsData = {
+    "Shopping Parc 2": {
+      derniereCommissionGroupement: "2024-03-01",
+      prochaineCommissionGroupement: "2025-03-01",
+      periodiciteCommissionsAn: "1",
+    },
+    "Groupe Commercial France": {
+      derniereCommissionGroupement: "2023-09-15",
+      prochaineCommissionGroupement: "2025-09-15",
+      periodiciteCommissionsAn: "2",
+    },
+    "Groupe Habitat Sud": {
+      derniereCommissionGroupement: "2022-12-10",
+      prochaineCommissionGroupement: "2025-12-10",
+      periodiciteCommissionsAn: "3",
+    },
+  };
 
   const handleImageChange = useCallback((e) => {
     const file = e.target.files[0]
@@ -301,7 +331,7 @@ const DynamicForm = ({ onSubmit, initialData = null }) => {
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault()
-
+      console.log("Form submitted with data:", contacts)
       // Combine all data
       const completeFormData = {
         ...formData,
@@ -453,6 +483,208 @@ const DynamicForm = ({ onSubmit, initialData = null }) => {
             )}
           </div>
         )
+      
+      case "verifications":
+        return (
+          <div className="tab-content">
+            <div className="tab-header">
+              <h3>Vérifications Périodiques</h3>
+              <button
+                type="button"
+                className="add-button"
+                onClick={() => {
+                  setShowVerificationForm(true)
+                  setEditingItem(null)
+                }}
+              >
+                <Plus size={16} />
+                <span>Ajouter</span>
+              </button>
+            </div>
+            {verifications && verifications.length > 0 ? (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Installations Techniques</th>
+                    <th>Sociétés Prestataire</th>
+                    <th>Date</th>
+                    <th>Rapport(s)</th>
+                    <th>En Analyse</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {verifications.map((verification) => (
+                    <tr key={verification.id}>
+                      <td>{verification.installation}</td>
+                      <td>{verification.societe}</td>
+                      <td>{new Date(verification.date).toLocaleDateString()}</td>
+                      <td>
+                        {verification.rapport ? (
+                          <a href="#" className="rapport-link">
+                            {verification.rapport}
+                          </a>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                      <td>{verification.enAnalyse}</td>
+                      <td className="actions-cell">
+                        <button className="table-action-button" onClick={() => handleEditVerification(verification)}>
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          className="table-action-button"
+                          onClick={() => handleDeleteVerification(verification.id)}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="empty-state">
+                <p>Aucune vérification périodique enregistrée</p>
+              </div>
+            )}
+          </div>
+        )
+      case "prescriptions":
+        return (
+          <div className="tab-content">
+            <div className="tab-header">
+                <h3>Prescriptions Commission de Sécurité</h3>
+                <button
+                  type="button"
+                  className="add-button"
+                  onClick={() => {
+                    setShowPrescriptionForm(true)
+                    setEditingItem(null)
+                  }}
+                >
+                  <Plus size={16} />
+                  <span>Ajouter</span>
+                </button>
+              </div>
+              {prescriptions && prescriptions.length > 0 ? (
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Statut</th>
+                      <th>Prescriptions</th>
+                      <th>Date de réalisation</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {prescriptions.map((prescription) => (
+                      <tr key={prescription.id}>
+                        <td>
+                          <span
+                            className={`status-badge status-${prescription.statut.toLowerCase().replace(/\s+/g, "-")}`}
+                          >
+                            {getStatusIcon(prescription.statut)}
+                            {prescription.statut}
+                          </span>
+                        </td>
+                        <td>{prescription.description}</td>
+                        <td>
+                          {prescription.dateRealisation
+                            ? new Date(prescription.dateRealisation).toLocaleDateString()
+                            : "-"}
+                        </td>
+                        <td className="actions-cell">
+                          <button className="table-action-button" onClick={() => handleEditPrescription(prescription)}>
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            className="table-action-button"
+                            onClick={() => handleDeletePrescription(prescription.id)}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="empty-state">
+                  <p>Aucune prescription enregistrée</p>
+                </div>
+              )}
+          </div>
+        )
+      case "observations":
+        return (
+          <div className="tab-content">
+            <div className="tab-header">
+              <h3>Observation PRÉVERIS</h3>
+              <button
+                type="button"
+                className="add-button"
+                onClick={() => {
+                  setShowObservationForm(true)
+                  setEditingItem(null)
+                }}
+              >
+                <Plus size={16} />
+                <span>Ajouter</span>
+              </button>
+            </div>
+            {observations && observations.length > 0 ? (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th>Observations des Visites</th>
+                    <th>Date d'observation</th>
+                    <th>Date de réalisation</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {observations.map((observation) => (
+                    <tr key={observation.id}>
+                      <td>
+                        <span
+                          className={`status-badge status-${observation.statut.toLowerCase().replace(/\s+/g, "-")}`}
+                        >
+                          {getStatusIcon(observation.statut)}
+                          {observation.statut}
+                        </span>
+                      </td>
+                      <td>{observation.description}</td>
+                      <td>{new Date(observation.dateObservation).toLocaleDateString()}</td>
+                      <td>
+                        {observation.dateRealisation
+                          ? new Date(observation.dateRealisation).toLocaleDateString()
+                          : "-"}
+                      </td>
+                      <td className="actions-cell">
+                        <button className="table-action-button" onClick={() => handleEditObservation(observation)}>
+                          <Edit size={14} />
+                        </button>
+                        <button
+                          className="table-action-button"
+                          onClick={() => handleDeleteObservation(observation.id)}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="empty-state">
+                <p>Aucune observation enregistrée</p>
+              </div>
+            )}
+          </div>
+        )
       // Autres onglets similaires...
       default:
         return null
@@ -467,6 +699,14 @@ const DynamicForm = ({ onSubmit, initialData = null }) => {
     handleEditAction,
     handleDeleteAction,
   ])
+  
+  useEffect(() => {
+    if (formData.dateDerniereCommission && formData.periodiciteCommissions) {
+      const date = new Date(formData.dateDerniereCommission);
+      date.setFullYear(date.getFullYear() + parseInt(formData.periodiciteCommissions));
+      handleChange("prochaineCommission", date.toISOString().split("T")[0]); // format 'YYYY-MM-DD'
+    }
+  }, [formData.dateDerniereCommission, formData.periodiciteCommissions]);
 
   return (
     <>
@@ -724,6 +964,7 @@ const DynamicForm = ({ onSubmit, initialData = null }) => {
                       type="date"
                       value={formData.prochaineCommission}
                       onChange={(e) => handleChange("prochaineCommission", e.target.value)}
+                      disabled={true}
                     />
                     <Calendar size={16} className="date-icon" />
                   </div>
@@ -732,15 +973,14 @@ const DynamicForm = ({ onSubmit, initialData = null }) => {
 
               <div className="form-row">
                 <div className="form-field">
-                  <label htmlFor="field-periodiciteCommissions">Périodicité des commissions</label>
+                  <label htmlFor="field-periodiciteCommissions">Périodicité des commissions (an)</label>
                   <div className="date-input-container">
                     <input
                       id="field-periodiciteCommissions"
-                      type="date"
+                      type="number"
                       value={formData.periodiciteCommissions}
                       onChange={(e) => handleChange("periodiciteCommissions", e.target.value)}
                     />
-                    <Calendar size={16} className="date-icon" />
                   </div>
                 </div>
               </div>
@@ -754,6 +994,7 @@ const DynamicForm = ({ onSubmit, initialData = null }) => {
                       type="date"
                       value={formData.derniereCommissionGroupement}
                       onChange={(e) => handleChange("derniereCommissionGroupement", e.target.value)}
+                      disabled={true}
                     />
                     <Calendar size={16} className="date-icon" />
                   </div>
@@ -766,6 +1007,7 @@ const DynamicForm = ({ onSubmit, initialData = null }) => {
                       type="date"
                       value={formData.prochaineCommissionGroupement}
                       onChange={(e) => handleChange("prochaineCommissionGroupement", e.target.value)}
+                      disabled={true}
                     />
                     <Calendar size={16} className="date-icon" />
                   </div>
@@ -778,11 +1020,11 @@ const DynamicForm = ({ onSubmit, initialData = null }) => {
                   <div className="date-input-container">
                     <input
                       id="field-periodiciteCommissionsAn"
-                      type="date"
+                      type="number"
                       value={formData.periodiciteCommissionsAn}
                       onChange={(e) => handleChange("periodiciteCommissionsAn", e.target.value)}
+                      disabled={true}
                     />
-                    <Calendar size={16} className="date-icon" />
                   </div>
                 </div>
               </div>

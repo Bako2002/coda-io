@@ -1,20 +1,16 @@
 "use client"
 
-import { useState } from "react"
-import "./FormStyles.css"
+import { useRef, useState } from "react"
+import "./FormStyles.css" //  Ensure you have this CSS file
+import { ImageIcon } from "lucide-react"
 
 const ObservationForm = ({ initialData = null, onSubmit }) => {
+
+  const fileInputRef = useRef(null)
   const defaultFormData = {
-    statut: "À faire",
-    description: "",
-    dateObservation: new Date().toISOString().split("T")[0],
-    dateRealisation: null,
-    type: "Observation Générale",
-    localisation: "",
-    priorite: "Normale",
-    responsable: "",
+    typeObservation: "Nouvelle",
+    observations: "",
     photos: [],
-    actions: [],
   }
 
   const [formData, setFormData] = useState(initialData || defaultFormData)
@@ -26,7 +22,6 @@ const ObservationForm = ({ initialData = null, onSubmit }) => {
       [field]: value,
     })
 
-    // Effacer l'erreur lorsque l'utilisateur modifie le champ
     if (errors[field]) {
       setErrors({
         ...errors,
@@ -35,31 +30,27 @@ const ObservationForm = ({ initialData = null, onSubmit }) => {
     }
   }
 
-  const handleActionChange = (action) => {
-    const currentActions = [...formData.actions]
-    if (currentActions.includes(action)) {
-      handleChange(
-        "actions",
-        currentActions.filter((a) => a !== action),
-      )
-    } else {
-      handleChange("actions", [...currentActions, action])
-    }
+  const handlePhotoChange = (e) => {
+    const files = Array.from(e.target.files)
+    const newPhotos = []
+
+    files.forEach((file) => {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        newPhotos.push(event.target.result) //  Store the base64 encoded string
+        if (newPhotos.length === files.length) {
+          handleChange("photos", newPhotos)
+        }
+      }
+      reader.readAsDataURL(file)
+    })
   }
 
   const validateForm = () => {
     const newErrors = {}
 
-    if (!formData.description.trim()) {
-      newErrors.description = "La description est requise"
-    }
-
-    if (!formData.dateObservation) {
-      newErrors.dateObservation = "La date d'observation est requise"
-    }
-
-    if (formData.statut === "Réalisé" && !formData.dateRealisation) {
-      newErrors.dateRealisation = "La date de réalisation est requise pour une observation réalisée"
+    if (!formData.observations.trim()) {
+      newErrors.observations = "Les observations sont requises"
     }
 
     setErrors(newErrors)
@@ -78,154 +69,56 @@ const ObservationForm = ({ initialData = null, onSubmit }) => {
     <div className="form-container">
       <div className="form-row">
         <div className="form-field">
-          <label htmlFor="statut">Statut</label>
-          <select id="statut" value={formData.statut} onChange={(e) => handleChange("statut", e.target.value)} required>
-            <option value="À faire">À faire</option>
-            <option value="En cours">En cours</option>
-            <option value="Réalisé">Réalisé</option>
+          <label htmlFor="typeObservation">Type d'observation</label>
+          <select
+            id="typeObservation"
+            value={formData.typeObservation}
+            onChange={(e) => handleChange("typeObservation", e.target.value)}
+          >
+            <option value="Nouvelle">Nouvelle</option>
+            <option value="Ancienne">Ancienne</option>
           </select>
         </div>
       </div>
 
       <div className="form-row">
         <div className="form-field">
-          <label htmlFor="description">
-            Description de l'observation <span className="required">*</span>
+          <label htmlFor="observations">
+            Observations <span className="required">*</span>
           </label>
           <textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) => handleChange("description", e.target.value)}
-            required
+            id="observations"
+            value={formData.observations}
+            onChange={(e) => handleChange("observations", e.target.value)}
             rows={4}
-            className={errors.description ? "input-error" : ""}
+            className={errors.observations ? "input-error" : ""}
           />
-          {errors.description && <div className="error-message">{errors.description}</div>}
+          {errors.observations && <div className="error-message">{errors.observations}</div>}
         </div>
       </div>
-
-      <div className="form-row two-columns">
-        <div className="form-field">
-          <label htmlFor="type">Type d'observation</label>
-          <select id="type" value={formData.type} onChange={(e) => handleChange("type", e.target.value)}>
-            <option value="Observation Générale">Observation Générale</option>
-            <option value="Sécurité Incendie">Sécurité Incendie</option>
-            <option value="Accessibilité">Accessibilité</option>
-            <option value="Technique">Technique</option>
-            <option value="Maintenance">Maintenance</option>
-            <option value="Autre">Autre</option>
-          </select>
-        </div>
-        <div className="form-field">
-          <label htmlFor="localisation">Localisation</label>
+      <div className="form-image-upload">
+        <div className="image-upload">
           <input
-            id="localisation"
-            type="text"
-            value={formData.localisation}
-            onChange={(e) => handleChange("localisation", e.target.value)}
-            placeholder="Ex: Hall d'entrée, Niveau -1, etc."
+            id="logo-upload"
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            style={{ display: "none" }}
+            ref={fileInputRef}
           />
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-field">
-          <label htmlFor="dateObservation">
-            Date d'observation <span className="required">*</span>
-          </label>
-          <input
-            id="dateObservation"
-            type="date"
-            value={formData.dateObservation}
-            onChange={(e) => handleChange("dateObservation", e.target.value)}
-            required
-            className={errors.dateObservation ? "input-error" : ""}
-          />
-          {errors.dateObservation && <div className="error-message">{errors.dateObservation}</div>}
-        </div>
-      </div>
-
-      <div className="form-row two-columns">
-        <div className="form-field">
-          <label htmlFor="priorite">Priorité</label>
-          <select id="priorite" value={formData.priorite} onChange={(e) => handleChange("priorite", e.target.value)}>
-            <option value="Basse">Basse</option>
-            <option value="Normale">Normale</option>
-            <option value="Haute">Haute</option>
-            <option value="Critique">Critique</option>
-          </select>
-        </div>
-        <div className="form-field">
-          <label htmlFor="responsable">Responsable</label>
-          <input
-            id="responsable"
-            type="text"
-            value={formData.responsable}
-            onChange={(e) => handleChange("responsable", e.target.value)}
-          />
-        </div>
-      </div>
-
-      {(formData.statut === "Réalisé" || formData.dateRealisation) && (
-        <div className="form-row">
-          <div className="form-field">
-            <label htmlFor="dateRealisation">
-              Date de réalisation {formData.statut === "Réalisé" && <span className="required">*</span>}
-            </label>
-            <input
-              id="dateRealisation"
-              type="date"
-              value={formData.dateRealisation || ""}
-              onChange={(e) => handleChange("dateRealisation", e.target.value)}
-              required={formData.statut === "Réalisé"}
-              className={errors.dateRealisation ? "input-error" : ""}
-            />
-            {errors.dateRealisation && <div className="error-message">{errors.dateRealisation}</div>}
-          </div>
-        </div>
-      )}
-
-      <div className="form-row">
-        <div className="form-field">
-          <label>Actions recommandées (sélection multiple)</label>
-          <div className="checkbox-group">
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="action-correction"
-                checked={formData.actions.includes("Correction immédiate")}
-                onChange={() => handleActionChange("Correction immédiate")}
-              />
-              <label htmlFor="action-correction">Correction immédiate</label>
+          <button type="button" className="image-upload-button" onClick={() => fileInputRef.current.click()}>
+            <ImageIcon size={16} />
+            <span>Ajouter une image</span>
+          </button>
+          {formData.photos ? (
+            formData.photos.map((photo, index) => (
+              <img  key={index} src={photo} alt={`Photo ${index + 1}`}/>
+            ))
+          ) : (
+            <div className="image-placeholder">
+              <ImageIcon size={48} />
             </div>
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="action-planification"
-                checked={formData.actions.includes("Planification travaux")}
-                onChange={() => handleActionChange("Planification travaux")}
-              />
-              <label htmlFor="action-planification">Planification travaux</label>
-            </div>
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="action-devis"
-                checked={formData.actions.includes("Demande de devis")}
-                onChange={() => handleActionChange("Demande de devis")}
-              />
-              <label htmlFor="action-devis">Demande de devis</label>
-            </div>
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="action-suivi"
-                checked={formData.actions.includes("Suivi PREVERIS")}
-                onChange={() => handleActionChange("Suivi PREVERIS")}
-              />
-              <label htmlFor="action-suivi">Suivi PREVERIS</label>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 

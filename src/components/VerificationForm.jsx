@@ -1,26 +1,28 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import "./FormStyles.css"
 
-const VerificationForm = ({ initialData = null, onSubmit }) => {
+const VerificationForm = ({ initialData = null, onSubmit, responsables }) => {
   const defaultFormData = {
     installation: "",
-    typeInstallation: "",
     societe: "",
     date: new Date().toISOString().split("T")[0],
-    dateProchaine: "",
-    periodicite: "",
-    rapport: "",
-    enAnalyse: "Non",
-    observations: "",
-    statut: "Conforme",
-    actions: [],
+    rapport: null, // Store the File object
+    responsableAnalyse: "",
+    periodiciteJours: "",
+    dateProchaineVerification: "",
   }
 
   const [formData, setFormData] = useState(initialData || defaultFormData)
   const [errors, setErrors] = useState({})
   const fileInputRef = useRef(null)
+
+  useEffect(() => {
+    if (formData.date && formData.periodiciteJours) {
+      calculateNextVerificationDate()
+    }
+  }, [formData.date, formData.periodiciteJours]) // Recalculate when date or period changes
 
   const handleChange = (field, value) => {
     setFormData({
@@ -28,7 +30,6 @@ const VerificationForm = ({ initialData = null, onSubmit }) => {
       [field]: value,
     })
 
-    // Effacer l'erreur lorsque l'utilisateur modifie le champ
     if (errors[field]) {
       setErrors({
         ...errors,
@@ -37,23 +38,9 @@ const VerificationForm = ({ initialData = null, onSubmit }) => {
     }
   }
 
-  const handleActionChange = (action) => {
-    const currentActions = [...formData.actions]
-    if (currentActions.includes(action)) {
-      handleChange(
-        "actions",
-        currentActions.filter((a) => a !== action),
-      )
-    } else {
-      handleChange("actions", [...currentActions, action])
-    }
-  }
-
   const handleFileChange = (e) => {
     const file = e.target.files[0]
-    if (file) {
-      handleChange("rapport", file.name)
-    }
+    handleChange("rapport", file) // Store the File object directly
   }
 
   const validateForm = () => {
@@ -71,28 +58,35 @@ const VerificationForm = ({ initialData = null, onSubmit }) => {
       newErrors.date = "La date est requise"
     }
 
+    if (!formData.periodiciteJours) {
+      newErrors.periodiciteJours = "La périodicité est requise"
+    }
+
+    if (!formData.dateProchaineVerification) {
+      newErrors.dateProchaineVerification = "La date de prochaine vérification est requise"
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
+  }
+
+  const calculateNextVerificationDate = () => {
+    if (formData.date && formData.periodiciteJours) {
+      const dateVerif = new Date(formData.date)
+      const periodiciteDays = Number.parseInt(formData.periodiciteJours, 10)
+
+      if (!isNaN(periodiciteDays)) {
+        const nextDate = new Date(dateVerif.getTime() + periodiciteDays * 24 * 60 * 60 * 1000)
+        handleChange("dateProchaineVerification", nextDate.toISOString().split("T")[0])
+      }
+    }
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
 
     if (validateForm()) {
-      // Calculer automatiquement la date de prochaine vérification si la périodicité est définie
-      const updatedData = { ...formData }
-
-      if (formData.periodicite && formData.date) {
-        const dateVerif = new Date(formData.date)
-        const periodiciteMonths = Number.parseInt(formData.periodicite)
-
-        if (!isNaN(periodiciteMonths)) {
-          dateVerif.setMonth(dateVerif.getMonth() + periodiciteMonths)
-          updatedData.dateProchaine = dateVerif.toISOString().split("T")[0]
-        }
-      }
-
-      onSubmit(updatedData)
+      onSubmit(formData)
     }
   }
 
@@ -112,27 +106,6 @@ const VerificationForm = ({ initialData = null, onSubmit }) => {
             className={errors.installation ? "input-error" : ""}
           />
           {errors.installation && <div className="error-message">{errors.installation}</div>}
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-field">
-          <label htmlFor="typeInstallation">Type d'installation</label>
-          <select
-            id="typeInstallation"
-            value={formData.typeInstallation}
-            onChange={(e) => handleChange("typeInstallation", e.target.value)}
-          >
-            <option value="">Sélectionner</option>
-            <option value="Électrique">Électrique</option>
-            <option value="Désenfumage">Désenfumage</option>
-            <option value="Incendie">Incendie</option>
-            <option value="Ascenseur">Ascenseur</option>
-            <option value="Chauffage">Chauffage</option>
-            <option value="Climatisation">Climatisation</option>
-            <option value="Gaz">Gaz</option>
-            <option value="Autre">Autre</option>
-          </select>
         </div>
       </div>
 
@@ -169,33 +142,38 @@ const VerificationForm = ({ initialData = null, onSubmit }) => {
           {errors.date && <div className="error-message">{errors.date}</div>}
         </div>
         <div className="form-field">
-          <label htmlFor="periodicite">Périodicité (mois)</label>
-          <select
-            id="periodicite"
-            value={formData.periodicite}
-            onChange={(e) => handleChange("periodicite", e.target.value)}
-          >
-            <option value="">Sélectionner</option>
-            <option value="1">1 mois</option>
-            <option value="3">3 mois</option>
-            <option value="6">6 mois</option>
-            <option value="12">12 mois</option>
-            <option value="24">24 mois</option>
-            <option value="36">36 mois</option>
-          </select>
+          <label htmlFor="periodiciteJours">
+            Périodicité (jours) <span className="required">*</span>
+          </label>
+          <input
+            id="periodiciteJours"
+            type="number"
+            value={formData.periodiciteJours}
+            onChange={(e) => handleChange("periodiciteJours", e.target.value)}
+            required
+            className={errors.periodiciteJours ? "input-error" : ""}
+          />
+          {errors.periodiciteJours && <div className="error-message">{errors.periodiciteJours}</div>}
         </div>
       </div>
 
       <div className="form-row">
         <div className="form-field">
-          <label htmlFor="dateProchaine">Date prochaine vérification</label>
+          <label htmlFor="dateProchaineVerification">
+            Date prochaine vérification <span className="required">*</span>
+          </label>
           <input
-            id="dateProchaine"
+            id="dateProchaineVerification"
             type="date"
-            value={formData.dateProchaine}
-            onChange={(e) => handleChange("dateProchaine", e.target.value)}
+            value={formData.dateProchaineVerification}
+            onChange={(e) => handleChange("dateProchaineVerification", e.target.value)}
+            readOnly // Make it read-only as it's calculated
+            required
+            className={errors.dateProchaineVerification ? "input-error" : ""}
           />
-          <div className="field-hint">Se calcule automatiquement selon la périodicité</div>
+          {errors.dateProchaineVerification && (
+            <div className="error-message">{errors.dateProchaineVerification}</div>
+          )}
         </div>
       </div>
 
@@ -209,9 +187,15 @@ const VerificationForm = ({ initialData = null, onSubmit }) => {
               ref={fileInputRef}
               onChange={handleFileChange}
               style={{ display: "none" }}
+              accept=".pdf,.doc,.docx" //  Restrict to common document types
             />
             <div className="file-input-display">
-              <input type="text" value={formData.rapport} placeholder="Sélectionner un fichier" readOnly />
+              <input
+                type="text"
+                value={formData.rapport ? formData.rapport.name : ""}
+                placeholder="Sélectionner un fichier"
+                readOnly
+              />
               <button type="button" className="file-select-button" onClick={() => fileInputRef.current.click()}>
                 Parcourir
               </button>
@@ -220,82 +204,22 @@ const VerificationForm = ({ initialData = null, onSubmit }) => {
         </div>
       </div>
 
-      <div className="form-row two-columns">
+      <div className="form-row">
         <div className="form-field">
-          <label htmlFor="statut">Statut</label>
-          <select id="statut" value={formData.statut} onChange={(e) => handleChange("statut", e.target.value)}>
-            <option value="Conforme">Conforme</option>
-            <option value="Non-conforme">Non-conforme</option>
-            <option value="Conforme avec réserves">Conforme avec réserves</option>
-          </select>
-        </div>
-        <div className="form-field">
-          <label htmlFor="enAnalyse">En Analyse</label>
+          <label htmlFor="responsableAnalyse">En Analyse (Responsable)</label>
           <select
-            id="enAnalyse"
-            value={formData.enAnalyse}
-            onChange={(e) => handleChange("enAnalyse", e.target.value)}
-            required
+            id="responsableAnalyse"
+            value={formData.responsableAnalyse}
+            onChange={(e) => handleChange("responsableAnalyse", e.target.value)}
           >
-            <option value="Oui">Oui</option>
-            <option value="Non">Non</option>
+            <option value="">Sélectionner un responsable</option>
+            {responsables &&
+              responsables.map((responsable) => (
+                <option key={responsable} value={responsable}>
+                  {responsable}
+                </option>
+              ))}
           </select>
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-field">
-          <label>Actions requises (sélection multiple)</label>
-          <div className="checkbox-group">
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="action-correction"
-                checked={formData.actions.includes("Correction immédiate")}
-                onChange={() => handleActionChange("Correction immédiate")}
-              />
-              <label htmlFor="action-correction">Correction immédiate</label>
-            </div>
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="action-planification"
-                checked={formData.actions.includes("Planification travaux")}
-                onChange={() => handleActionChange("Planification travaux")}
-              />
-              <label htmlFor="action-planification">Planification travaux</label>
-            </div>
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="action-devis"
-                checked={formData.actions.includes("Demande de devis")}
-                onChange={() => handleActionChange("Demande de devis")}
-              />
-              <label htmlFor="action-devis">Demande de devis</label>
-            </div>
-            <div className="checkbox-item">
-              <input
-                type="checkbox"
-                id="action-suivi"
-                checked={formData.actions.includes("Suivi PREVERIS")}
-                onChange={() => handleActionChange("Suivi PREVERIS")}
-              />
-              <label htmlFor="action-suivi">Suivi PREVERIS</label>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-field">
-          <label htmlFor="observations">Observations</label>
-          <textarea
-            id="observations"
-            value={formData.observations}
-            onChange={(e) => handleChange("observations", e.target.value)}
-            rows={3}
-          />
         </div>
       </div>
 

@@ -1,9 +1,12 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { ChevronDown, ChevronRight, Home, FileText, Users, Calendar, Settings, Building } from "lucide-react"
+import { useState, useCallback, useEffect } from "react"
+import { ChevronDown, ChevronRight, Home, FileText, Users, Calendar, Settings, Building, PanelLeft } from "lucide-react"
+import "./Sidebar.css" 
 
-const Sidebar = ({ collapsed, onSwitchView, activeView }) => {
+
+const Sidebar = ({ collapsed, onSwitchView, activeView , onCollapseChange}) => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(collapsed)
   const [expandedMenus, setExpandedMenus] = useState({
     "suivi-clients": true,
   })
@@ -14,36 +17,56 @@ const Sidebar = ({ collapsed, onSwitchView, activeView }) => {
       [menuId]: !prev[menuId],
     }))
   }, [])
+  
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        setSidebarCollapsed(!collapsed)
+      }
+      else{
+        setSidebarCollapsed(collapsed)
+      }
+    }
+
+    // Lancer au chargement
+    handleResize()
+
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [collapsed])
 
   return (
     <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
         <div className="logo">
           <div className="logo-icon">P</div>
-          {!collapsed && <span className="logo-text">Doc PRÉVERIS</span>}
+          {!sidebarCollapsed && <span className="logo-text">PRÉVERIS</span>}
         </div>
+        <button className="sidebar-toggle" onClick={onCollapseChange}>
+          <PanelLeft size={20} />
+        </button>
       </div>
 
       <div className="sidebar-content">
         <ul className="menu">
           <li className="menu-item">
             <a href="#" className="menu-link">
-              <Home size={collapsed ? 20 : 16} />
-              {!collapsed && <span>Accueil</span>}
+              <Home size={sidebarCollapsed ? 20 : 16} />
+              {!sidebarCollapsed && <span>Accueil</span>}
             </a>
           </li>
 
           <li className="menu-item">
             <a href="#" className="menu-link">
-              <FileText size={collapsed ? 20 : 16} />
-              {!collapsed && <span>STAFF MEETING</span>}
+              <FileText size={sidebarCollapsed ? 20 : 16} />
+              {!sidebarCollapsed && <span>STAFF MEETING</span>}
             </a>
           </li>
 
           <li className="menu-item">
             <a href="#" className="menu-link">
-              <FileText size={collapsed ? 20 : 16} />
-              {!collapsed && <span>TÂCHES PRÉVERIS</span>}
+              <FileText size={sidebarCollapsed ? 20 : 16} />
+              {!sidebarCollapsed && <span>TÂCHES PRÉVERIS</span>}
             </a>
           </li>
 
@@ -52,8 +75,8 @@ const Sidebar = ({ collapsed, onSwitchView, activeView }) => {
               className={`menu-link ${expandedMenus["suivi-clients"] ? "active" : ""}`}
               onClick={() => toggleMenu("suivi-clients")}
             >
-              <Users size={collapsed ? 20 : 16} />
-              {!collapsed && (
+              <Users size={sidebarCollapsed ? 20 : 16} />
+              {!sidebarCollapsed && (
                 <>
                   <span>SUIVI CLIENTS</span>
                   {expandedMenus["suivi-clients"] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
@@ -61,7 +84,7 @@ const Sidebar = ({ collapsed, onSwitchView, activeView }) => {
               )}
             </div>
 
-            {!collapsed && expandedMenus["suivi-clients"] && (
+            {!sidebarCollapsed && expandedMenus["suivi-clients"] && (
               <ul className="submenu">
                 <li className="submenu-item">
                   <a
@@ -104,22 +127,22 @@ const Sidebar = ({ collapsed, onSwitchView, activeView }) => {
 
           <li className="menu-item">
             <a href="#" className="menu-link">
-              <Calendar size={collapsed ? 20 : 16} />
-              {!collapsed && <span>FORMATION</span>}
+              <Calendar size={sidebarCollapsed ? 20 : 16} />
+              {!sidebarCollapsed && <span>FORMATION</span>}
             </a>
           </li>
 
           <li className="menu-item">
             <a href="#" className="menu-link">
-              <Users size={collapsed ? 20 : 16} />
-              {!collapsed && <span>RESSOURCES HUMAINES</span>}
+              <Users size={sidebarCollapsed ? 20 : 16} />
+              {!sidebarCollapsed && <span>RESSOURCES HUMAINES</span>}
             </a>
           </li>
 
           <li className="menu-item">
             <a href="#" className="menu-link">
-              <Settings size={collapsed ? 20 : 16} />
-              {!collapsed && <span>Améliorations CODA</span>}
+              <Settings size={sidebarCollapsed ? 20 : 16} />
+              {!sidebarCollapsed && <span>Améliorations CODA</span>}
             </a>
           </li>
         </ul>

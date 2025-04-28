@@ -459,7 +459,7 @@ function App() {
 
   return (
     <div className="app">
-      <Sidebar collapsed={sidebarCollapsed} onSwitchView={handleSwitchView} activeView={view} />
+      <Sidebar collapsed={sidebarCollapsed} onSwitchView={handleSwitchView} activeView={view}  onCollapseChange={()=> setSidebarCollapsed(!sidebarCollapsed)}/>
 
       <div className={`main-content ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
         <header className="header">
